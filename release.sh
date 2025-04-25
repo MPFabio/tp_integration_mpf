@@ -93,22 +93,18 @@ git add pubspec.yaml
 echo "Génération du changelog avec conventional-changelog..."
 conventional-changelog -p angular -i CHANGELOG.md -s
 
-# 3. Renommer CHANGELOG.md en RELEASE_REPORT.md
-mv CHANGELOG.md RELEASE_REPORT.md
-git add RELEASE_REPORT.md
-
-# 4. Créer un tag Git
+# 3. Créer un tag Git
 echo "Création du tag Git pour la version $NEW_VERSION..."
 git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION" || { echo "Échec de la création du tag"; exit 1; }
 
-# 5. Pousser le tag et les commits
+# 4. Pousser le tag et les commits
 echo "Poussage des commits et du tag..."
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 git commit -m "chore(release): $NEW_VERSION" || { echo "Échec du commit"; exit 1; }
 git push origin "$CURRENT_BRANCH" || { echo "Échec du push de la branche"; exit 1; }
 git push origin "$NEW_VERSION" || { echo "Échec du push du tag"; exit 1; }
 
-# 6. Créer une release publique (GitHub)
+# 5. Créer une release publique (GitHub)
 echo "Création de la release publique..."
 gh release create "$NEW_VERSION" --title "Release $NEW_VERSION" --notes-file RELEASE_REPORT.md || { echo "Échec de la création de la release"; exit 1; }
 

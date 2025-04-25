@@ -1,5 +1,3 @@
-# tp_integration_mpf
-
 # TP Integration
 
 [![Flutter CI](https://github.com/MPFabio/tp_integration_mpf/actions/workflows/release.yml/badge.svg)](https://github.com/MPFabio/tp_integration_mpf/actions/workflows/release.yml)
