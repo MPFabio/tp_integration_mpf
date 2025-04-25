@@ -30,10 +30,6 @@ set -e  # Arrêter le script en cas d'erreur
 # 2. Résultat : Version passe de 1.0.3 à 1.1.0 (car "feat" est détecté)
 # 3. Changelog : Les messages avec "feat" apparaissent sous "Added", ceux avec "fix" ou "refactor" sous "Changed".
 
-#!/bin/bash
-
-set -e  # Arrêter le script en cas d'erreur
-
 # Vérifier si conventional-changelog-cli est installé
 if ! command -v conventional-changelog &> /dev/null
 then
@@ -92,6 +88,7 @@ git add pubspec.yaml
 # 2. Générer un changelog structuré avec conventional-changelog
 echo "Génération du changelog avec conventional-changelog..."
 conventional-changelog -p angular -i CHANGELOG.md -s
+git add CHANGELOG.md
 
 # 3. Créer un tag Git
 echo "Création du tag Git pour la version $NEW_VERSION..."
@@ -106,6 +103,15 @@ git push origin "$NEW_VERSION" || { echo "Échec du push du tag"; exit 1; }
 
 # 5. Créer une release publique (GitHub)
 echo "Création de la release publique..."
-gh release create "$NEW_VERSION" --title "Release $NEW_VERSION" --notes-file RELEASE_REPORT.md || { echo "Échec de la création de la release"; exit 1; }
+gh release create "$NEW_VERSION" --title "$NEW_VERSION" --notes-file CHANGELOG.md || { echo "Échec de la création de la release"; exit 1; }
+
+# 6. Mettre à jour les badges dans le README
+echo "Mise à jour des badges dans le README..."
+# Assurez-vous que GITHUB_TOKEN est disponible dans l'environnement (fourni par GitHub Actions)
+sed -i "s|!\[release\](https://img.shields.io/github/v/release/LaPauseClope/pause-clope-mobile?sort=semver&include_prereleases=false&token=.*)|![release](https://img.shields.io/github/v/release/LaPauseClope/pause-clope-mobile?sort=semver&include_prereleases=false&token=${GITHUB_TOKEN})|" README.md
+sed -i "s|!\[tag\](https://img.shields.io/github/v/tag/LaPauseClope/pause-clope-mobile?sort=semver&include_prereleases=false&token=.*)|![tag](https://img.shields.io/github/v/tag/LaPauseClope/pause-clope-mobile?sort=semver&include_prereleases=false&token=${GITHUB_TOKEN})|" README.md
+git add README.md
+git commit -m "chore: update badges in README to reflect new version" || true
+git push origin "$CURRENT_BRANCH" || true
 
 echo "Publication terminée avec succès !"
