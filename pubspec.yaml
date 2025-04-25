@@ -3,7 +3,7 @@ name: tp_integration_mpf
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.2.1
+version: 1.2.2
 
 environment:
   sdk: ^3.7.2
