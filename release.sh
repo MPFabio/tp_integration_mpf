@@ -30,6 +30,17 @@ set -e  # Arrêter le script en cas d'erreur
 # 2. Résultat : Version passe de 1.0.3 à 1.1.0 (car "feat" est détecté)
 # 3. Changelog : Les messages avec "feat" apparaissent sous "Added", ceux avec "fix" ou "refactor" sous "Changed".
 
+#!/bin/bash
+
+set -e  # Arrêter le script en cas d'erreur
+
+# Vérifier si conventional-changelog-cli est installé
+if ! command -v conventional-changelog &> /dev/null
+then
+    echo "Installation de conventional-changelog-cli..."
+    npm install -g conventional-changelog-cli
+fi
+
 # 1. Déterminer la plage de commits et le type d'incrémentation
 echo "Détermination de la plage de commits..."
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
@@ -78,45 +89,27 @@ echo "Nouvelle version : $NEW_VERSION"
 sed -i "s/version: $CURRENT_VERSION/version: $NEW_VERSION/" pubspec.yaml || { echo "Échec de la mise à jour de pubspec.yaml"; exit 1; }
 git add pubspec.yaml
 
-# 2. Générer un changelog propre avec les changements pertinents
-echo "Génération du changelog..."
-TEMP_CHANGELOG=$(mktemp)
-echo "## [$NEW_VERSION] - $(date +%F)" > "$TEMP_CHANGELOG"
-echo "" >> "$TEMP_CHANGELOG"
+# 2. Générer un changelog structuré avec conventional-changelog
+echo "Génération du changelog avec conventional-changelog..."
+conventional-changelog -p angular -i CHANGELOG.md -s
 
-echo "### Added" >> "$TEMP_CHANGELOG"
-git log "$COMMIT_RANGE" --pretty=format:"%s" | grep -E "^feat" | sed 's/^feat: \(.*\)/- \1/' >> "$TEMP_CHANGELOG" || echo "- Aucun ajout" >> "$TEMP_CHANGELOG"
-echo "" >> "$TEMP_CHANGELOG"
+# 3. Renommer CHANGELOG.md en RELEASE_REPORT.md
+mv CHANGELOG.md RELEASE_REPORT.md
+git add RELEASE_REPORT.md
 
-echo "### Changed" >> "$TEMP_CHANGELOG"
-git log "$COMMIT_RANGE" --pretty=format:"%s" | grep -E "^fix|^refactor" | sed 's/^\(fix\|refactor\): \(.*\)/- \1: \2/' >> "$TEMP_CHANGELOG" || echo "- Aucun changement" >> "$TEMP_CHANGELOG"
-echo "" >> "$TEMP_CHANGELOG"
-
-if [ -f CHANGELOG.md ]; then
-  echo "Ancien CHANGELOG.md trouvé, ajout de son contenu..."
-  cat CHANGELOG.md >> "$TEMP_CHANGELOG"
-else
-  echo "Aucun CHANGELOG.md existant trouvé, création d'un nouveau..."
-fi
-
-mv "$TEMP_CHANGELOG" CHANGELOG.md
-echo "Contenu de CHANGELOG.md après génération :"
-cat CHANGELOG.md
-git add CHANGELOG.md
-
-# 3. Créer un tag Git
+# 4. Créer un tag Git
 echo "Création du tag Git pour la version $NEW_VERSION..."
 git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION" || { echo "Échec de la création du tag"; exit 1; }
 
-# 4. Pousser le tag et les commits
+# 5. Pousser le tag et les commits
 echo "Poussage des commits et du tag..."
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 git commit -m "chore(release): $NEW_VERSION" || { echo "Échec du commit"; exit 1; }
 git push origin "$CURRENT_BRANCH" || { echo "Échec du push de la branche"; exit 1; }
 git push origin "$NEW_VERSION" || { echo "Échec du push du tag"; exit 1; }
 
-# 5. Créer une release publique (GitHub)
+# 6. Créer une release publique (GitHub)
 echo "Création de la release publique..."
-gh release create "$NEW_VERSION" --title "Release $NEW_VERSION" --notes-file CHANGELOG.md || { echo "Échec de la création de la release"; exit 1; }
+gh release create "$NEW_VERSION" --title "Release $NEW_VERSION" --notes-file RELEASE_REPORT.md || { echo "Échec de la création de la release"; exit 1; }
 
 echo "Publication terminée avec succès !"

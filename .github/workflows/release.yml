@@ -2,9 +2,9 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -43,6 +43,9 @@ jobs:
 
       - name: Run tests with coverage and verbose logs
         run: flutter test --reporter expanded --coverage --test-randomize-ordering-seed random
+
+      - name: Install conventional-changelog-cli
+        run: npm install -g conventional-changelog-cli
 
       - name: Make release script executable
         run: chmod +x release.sh
