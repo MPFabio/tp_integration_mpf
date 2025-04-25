@@ -1,7 +1,7 @@
 # TP Integration
 
 [![Flutter CI](https://github.com/MPFabio/tp_integration_mpf/actions/workflows/release.yml/badge.svg)](https://github.com/MPFabio/tp_integration_mpf/actions/workflows/release.yml)
-[![Latest Release](https://img.shields.io/github/v/release/MPFabio/tp_integration_mpf?style=flat&sort=semver&cacheSeconds=1800)](https://github.com/MPFabio/tp_integration_mpf/releases)
+[![Latest Release](https://img.shields.io/github/v/release/MPFabio/tp_integration_mpf?style=flat&sort=semver&cacheSeconds=0)](https://github.com/MPFabio/tp_integration_mpf/releases)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/MPFabio/tp_integration_mpf?sort=semver)](https://github.com/MPFabio/tp_integration_mpf/tags)
 
 
