@@ -1,0 +1,53 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build:
+    name: Build, Lint, Test & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+          # Vérifier que la configuration a bien été appliquée
+          echo "Git user.email: $(git config --global user.email)"
+          echo "Git user.name: $(git config --global user.name)"
+          # S'assurer que l'identité est bien définie pour ce dépôt
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run linter (flutter analyze)
+        run: |
+          flutter analyze > analyze.log || true
+          cat analyze.log
+
+      - name: Run tests with coverage and verbose logs
+        run: flutter test --reporter expanded --coverage --test-randomize-ordering-seed random
+
+      - name: Make release script executable
+        run: chmod +x release.sh
+
+      - name: Run release script
+        run: ./release.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
